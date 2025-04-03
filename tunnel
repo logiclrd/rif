@@ -1,0 +1,26 @@
+#!/bin/tcsh
+
+set SCRIPT=($_)
+
+if ("$SCRIPT" == "") then
+	set SCRIPT=$0
+else if ("$SCRIPT[1]" == "source") then
+	set SCRIPT=$SCRIPT[2]
+endif
+
+set SCRIPTDIR_REL=`dirname -- $SCRIPT`
+set SCRIPTDIR=`cd -- $SCRIPTDIR_REL && pwd`
+
+set TARGETHOST=$1
+
+set CONFIG=(`grep ^$TARGETHOST' ' $SCRIPTDIR/MAPPINGS` __)
+
+set PORTNUMBER=$CONFIG[2]
+set INTERNALIP=$CONFIG[3]
+set INTERNALPORTNUMBER=$CONFIG[4]
+
+if ("$INTERNALPORTNUMBER" == "__") then
+	set INTERNALPORTNUMBER=$PORTNUMBER
+endif
+
+$SCRIPTDIR/restricted-ip-forwarder $PORTNUMBER $INTERNALIP $INTERNALPORTNUMBER `cat $SCRIPTDIR/ALLOWED-IPS`

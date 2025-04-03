@@ -131,7 +131,18 @@ int main(int argc, char *argv[])
 
   port_number = atoi(argv[1]);
 
+  unsigned long target_address = inet_addr(argv[2]);
+  int target_port = atoi(argv[3]);
+
+  struct sockaddr_in target_sockaddr;
+
+  memset(&target_sockaddr, 0, sizeof(target_sockaddr));
+  target_sockaddr.sin_family = AF_INET;
+  memcpy(&target_sockaddr.sin_addr, &target_address, 4);
+  target_sockaddr.sin_port = htons(target_port);
+
   printf("Port number: %d\n", port_number);
+  printf("Tunnel to: %s:%d\n", inet_ntoa(target_sockaddr.sin_addr), target_port);
 
   sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
  
@@ -154,19 +165,10 @@ int main(int argc, char *argv[])
       error_abort("unable to listen on socket!");
     else
     {
-      unsigned long target_address = inet_addr(argv[2]);
-      int target_port = htons(atoi(argv[3]));
-      struct sockaddr_in target_sockaddr;
-
       int num_sources = argc - 4;
       unsigned long *source = malloc(num_sources * sizeof(unsigned long));
 
       int i;
-
-      memset(&target_sockaddr, 0, sizeof(target_sockaddr));
-      target_sockaddr.sin_family = AF_INET;
-      memcpy(&target_sockaddr.sin_addr, &target_address, 4);
-      target_sockaddr.sin_port = target_port;
 
       for (i=0; i<num_sources; i++)
         source[i] = inet_addr(argv[i + 4]);
